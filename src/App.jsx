@@ -1,52 +1,53 @@
-import { use, useState } from 'react';
-import reactLogo from './assets/react.svg';
-import viteLogo from './assets/vite.svg';
-import heroImg from './assets/hero.png';
+import { use, useEffect, useState } from 'react';
 import './App.css';
 
+const API_KEY =
+  'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false';
 function App() {
-  const [todo, setTodo] = useState('');
-  const [todos, setTodos] = useState([]);
-  const [checked, setChecked] = useState(false);
-  const onChange = (event) => setTodo(event.target.value);
-  const onSubmit = (event) => {
-    event.preventDefault();
-    if (todo.trim() === '') {
-      return;
-    }
+  const [loading, setLoading] = useState(true);
+  const [coins, setCoins] = useState([]);
+  const [currentCoinsPrice, setCurrentCoinsPrice] = useState(0);
+  const [onPrice, setOnPrice] = useState(0);
 
-    setTodos((currentArray) => [todo, ...currentArray]);
-    setTodo('');
-    console.log(todos);
+  const onSelectChange = (e) => {
+    setCurrentCoinsPrice(Number(e.target.value));
   };
 
-  const handleChecked = (event) => {
-    setChecked(event.target.checked);
-    console.log('HANDLE EVENT', event.target.checked);
+  const inputOnChange = (e) => {
+    setOnPrice(e.target.value);
   };
+
+  useEffect(() => {
+    fetch(API_KEY)
+      .then((response) => response.json())
+      .then((json) => {
+        setCoins(json);
+        setLoading(false);
+      });
+  }, []);
+
+  console.log('카렌투 코인즈으', currentCoinsPrice);
 
   return (
     <>
-      <h1>My to dos ({todos.length}) </h1>
-      <form onSubmit={onSubmit}>
-        <input
-          type="text"
-          value={todo}
-          placeholder="할 일을 적으세욧!"
-          onChange={onChange}
-        />
-        <button>할 일 적기 완료</button>
-      </form>
-      <hr />
-
-      <ul>
-        {todos.map((item, i) => (
-          <li key={i}>
-            {item}
-            {/* <input type="checkbox" onChange={handleChecked} checked={checked} /> */}
-          </li>
-        ))}
-      </ul>
+      <h1>The Crypto Calculator!</h1>
+      {loading ? (
+        <strong> Loading... </strong>
+      ) : (
+        <>
+          <input type="number" onChange={inputOnChange} />
+          <select onChange={onSelectChange}>
+            {coins.map((coin, index) => (
+              <option key={coin.id} value={coin.current_price}>
+                {coin.name} (price : {coin.current_price})
+              </option>
+            ))}
+          </select>
+          {currentCoinsPrice == 0 ? null : (
+            <h1>You can Have {onPrice / currentCoinsPrice}!</h1>
+          )}
+        </>
+      )}
     </>
   );
 }
